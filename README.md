@@ -1,1 +1,0 @@
-# LittelDuck-C-plus-plus
