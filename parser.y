@@ -1,14 +1,15 @@
 %{
-#include <cstdio>
-#include <iostream>
-using namespace std;
-
-extern "C" int yylex();
-extern "C" int yyparse();
-extern "C" FILE *yyin;
-extern int line_count;
- 
-void yyerror(const char *s);
+    #include <stdio.h>
+    #include <iostream>
+    using namespace std;
+    extern "C" int yylex();
+    extern "C" int yyparse();
+    extern "C" char *yytext;
+    extern "C" int line_num;
+    extern "C" char file_name;
+    extern "C" FILE *yyin;
+     
+    void yyerror(const char *s);
 %}
 
 %union {
@@ -76,7 +77,7 @@ void yyerror(const char *s);
 
 %%
 programa:
-    PROGRAM ID SEMICOLON program_vars block {cout<< "Valid input" <<endl;}
+    PROGRAM ID SEMICOLON program_vars block {std::cout<< "Valid input" <<endl;}
     ;
 program_vars:
     vars
@@ -199,26 +200,26 @@ print_exp:
     ;
 %%
 
-int main(int argc, char *argv[]) {
-	// open a file handle to a particular file:
-	FILE *myfile = fopen(argv[1], "r");
-	// make sure it is valid:
-	if (!myfile) {
-		cout << "I can't open the file!" << endl;
-		return -1;
-	}
-	// set flex to read from it instead of defaulting to STDIN:
-	yyin = myfile;
-	
-	// parse through the input until there is no more:
-	do {
-		yyparse();
-	} while (!feof(yyin));
-	
-}
 
+int main(int argc, char *argv[]){
+
+    // Read the file to test, gived as first argument
+    FILE *file_test = fopen(argv[1], "r");
+    // If cant open the file, stop
+    if (!file_test) {
+        cout << "No file to test found on directory" << endl;
+        return -1;
+    }
+    // Read from the file
+    yyin = file_test;
+    // Read all the file and then stop
+    do {
+        yyparse();
+    } while (!feof(yyin));
+    return 0;
+}
+// Function to throw an error
 void yyerror(const char *s) {
-	cout << "Parse error in line " << line_count <<"! Message: " << s << endl;
-	// might as well halt now:
-	exit(-1);
+    printf("Syntax error found at line: %d, unexpected token '%s'\n", line_num, yytext);
+    exit(-1);
 }

@@ -1,10 +1,11 @@
 %{
-#include <cstdio>
 #include <iostream>
+#include <stdio.h>
+#include "parser.tab.h"  
 using namespace std;
 #define YY_DECL extern "C" int yylex()
 
-#include "preset.tab.h"  
+int line_num = 1;
 
 %}
 
@@ -33,10 +34,16 @@ float   {return FLOAT;}
 "="     {return EQUALS;}
 ","     {return COMMA;}
 
-\".*\"                      {return CTESTRING;}
-[A-za-z]([A-za-z]|[0-9])*   {yylval.sval = strdup(yytext); return ID;}
-[0-9]*\.[0-9]+|[0-9]+       {yylval.ival = atof(yytext); return CTEF;}
-\d+                         {yylval.ival = atoi(yytext); return CTEI;  }
 
-.                	;
+[0-9]+            	{ yylval.ival = atoi(yytext); return CTEI; }
+[a-zA-Z0-9]+     	{ yylval.sval = strdup(yytext); return ID; }
+[0-9]+\.[0-9]+ 		{ yylval.fval = atof(yytext); return CTEF; }
+\".*\"				{ return CTESTRING; }
+
+[ \t\r]             { ; }
+[\n]                { line_num++; }
+
+.                   { printf("Invalid token (line %d): '%s'\n", line_num, yytext); exit(-1); }
 %% 
+
+int yywrap(){ return 1; }
